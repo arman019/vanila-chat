@@ -4,30 +4,51 @@ const express = require('express');
 const app = express();
 const socketio = require('socket.io');
 
+const { formatMessage } = require('./utils/messages');
+const { userJoin, getCurrentUser,roomUsers,userLeave } = require('./utils/users');
+
 const server = http.createServer(app);
 const io = socketio(server)
 
-app.use(express.static(path.join(__dirname,"public")));
+app.use(express.static(path.join(__dirname, "public")));
 
-io.on('connection', (socket)=>{
+const botName = 'bot';
 
-    socket.emit("message", "welcome to chat");
+io.on('connection', (socket) => {
 
-    socket.broadcast.emit('message', "A client has joined");
+    socket.on('joinRoom', ({ username, room }) => {
+        const user = userJoin(socket.id , username , room);
+       // console.log('user ',user);
+        socket.join(user.room)
 
-    socket.on('chatMessage',(msg)=>{
-        // console.log(msg)
-        io.emit('message',msg)
-        
+        socket.emit("message", formatMessage(botName, "welcome to chat"));
+
+        socket.broadcast
+        .to(user.room)
+        .emit('message', formatMessage(botName, `${user.username} has joined the chat`));
+
     })
 
-    socket.on('disconnect', ()=>{
-        io.emit('message', 'a user left the chat')
+    socket.on('chatMessage', (msg) => {
+        const user= getCurrentUser(socket.id);
+        // console.log(msg)
+        io.to(user.room).emit('message', formatMessage(user.username, msg))
+
+    })
+
+    socket.on('disconnect', () => {
+        const user = userLeave(socket.id);
+        console.log("user leave ", user);
+
+        if(user){
+            io.to(user.room).emit('message', formatMessage(botName, ` ${user.username}has left the chat`))
+
+        }
     })
 })
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, ()=>{
-console.log(`connected to port ${PORT}`)
+server.listen(PORT, () => {
+    console.log(`connected to port ${PORT}`)
 })
