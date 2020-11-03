@@ -10,7 +10,19 @@ const io = socketio(server)
 app.use(express.static(path.join(__dirname,"public")));
 
 io.on('connection', (socket)=>{
-    console.log("new webSocket connect")
+
+    socket.emit("message", "welcome to chat");
+
+    socket.broadcast.emit('message', "A client has joined");
+
+    socket.on('chatMessage',(msg)=>{
+        // console.log(msg)
+        io.emit('message',msg)
+    })
+
+    socket.on('disconnect', ()=>{
+        io.emit('message', 'a user left the chat')
+    })
 })
 
 const PORT = process.env.PORT || 3000;
