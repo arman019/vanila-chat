@@ -36,6 +36,6 @@ exports.userLeave = (id)=>{
   }
 };
 
-exports.roomUsers = (room)=>{
+exports.getRoomUsers = (room)=>{
     return users.filter(user=>user.room === room)
 }

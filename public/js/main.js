@@ -1,5 +1,7 @@
 const chatForm = document.getElementById('chat-form');
 const chatMessages=document.querySelector('.chat-messages');
+const roomName = document.getElementById('room-name');
+const userList = document.getElementById('users');
 
 const {username,room}= Qs.parse(location.search,{
     ignoreQueryPrefix : true
@@ -9,7 +11,15 @@ console.log(username,room)
 
 const socket = io();
 
+
 socket.emit('joinRoom',{username,room});
+
+socket.on('roomUsers' ,({room ,users})=>{
+    outputRoomName(room);
+   outputUserName(users);
+})
+
+
 
 socket.on("message",(message)=>{
     console.log(message);
@@ -19,8 +29,14 @@ socket.on("message",(message)=>{
 
 chatForm.addEventListener('submit', (event)=>{
     event.preventDefault();
+    let msg = event.target.elements.msg.value;
+  
+  msg = msg.trim();
+  
+  if (!msg){
+    return false;
+  }
 
-    const msg = event.target.elements.msg.value;
     socket.emit('chatMessage',msg);
 
     event.target.elements.msg.value='';
@@ -38,4 +54,24 @@ const outPutMessage = (message)=>{
     </p>`
 
     document.querySelector('.chat-messages').appendChild(div)
+};
+
+
+ const outputRoomName = (room)=>{
+     roomName.innerText = room
+ }
+
+
+
+
+const outputUserName = (users)=>{
+  
+    userList.innerHTML = '';
+
+    users.forEach(user =>{
+       const list = document.createElement('li')
+        list.innerText = user.username;
+
+        userList.appendChild(list)
+    })
 }
