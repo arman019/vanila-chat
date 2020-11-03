@@ -1,17 +1,24 @@
-const chatForm = document.getElementById('chat-form')
+
+
+const chatForm = document.getElementById('chat-form');
+const chatMessages=document.querySelector('.chat-messages')
 
 const socket = io();
 
 socket.on("message",(message)=>{
     console.log(message);
-    outPutMessage(message)
+    outPutMessage(message);
+    chatMessages.scrollTop = chatMessages.scrollHeight  ;
 });
 
 chatForm.addEventListener('submit', (event)=>{
     event.preventDefault();
 
     const msg = event.target.elements.msg.value;
-    socket.emit('chatMessage',msg)
+    socket.emit('chatMessage',msg);
+
+    event.target.elements.msg.value='';
+    event.target.elements.msg.focus();
 
 });
 
